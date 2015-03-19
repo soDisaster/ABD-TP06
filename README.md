@@ -3,6 +3,9 @@
 Thomas Bernard & Anne-Sophie Saint-Omer
 
 
+Partie 1
+--------
+
 Dans Postgresql, avec la commande EXPLAIN, examinez et expliquez les plans d’execution
 des instructions suivantes :
 
@@ -70,6 +73,9 @@ Le champs a est un varchar de taille 3, la largeur estimée est de 4.
 Même chose que précédemment : varchar(3) + varchar(97)
 
 
+Partie 2
+--------
+
 Examinez le plan d’execution du calcul de la jointure entre T et TT :
 
 ```sql
@@ -84,6 +90,8 @@ Hash Join  (cost=4.25..16.05 rows=267 width=103)
  ```
         
 Le coût de lancement n'est plus 0 comme dans les requêtes précédentes, la jointure augmente ce coût.
+
+
 
         
  
