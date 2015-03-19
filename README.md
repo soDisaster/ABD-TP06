@@ -6,11 +6,11 @@ Thomas Bernard & Anne-Sophie Saint-Omer
 Dans Postgresql, avec la commande EXPLAIN, examinez et expliquez les plans d’execution
 des instructions suivantes :
 
-'''sql  
+```sql  
 select * from T ;
 
 Seq Scan on t  (cost=0.00..3.00 rows=100 width=102)  
-'''
+```
 
 
 select * from T where a = ‘4’ ;
