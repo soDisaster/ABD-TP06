@@ -69,3 +69,22 @@ Cette requête renvoie 54 lignes, de l'id 51 à 99 mais également les id 6 à 9
 Le champs a est un varchar de taille 3, la largeur estimée est de 4.  
 Même chose que précédemment : varchar(3) + varchar(97)
 
+
+Examinez le plan d’execution du calcul de la jointure entre T et TT :
+
+```sql
+select tt.a, t.a, tt.b
+from t join tt on t.a = tt.t ;
+
+Hash Join  (cost=4.25..16.05 rows=267 width=103)
+  Hash Cond: (tt.t = t.a)
+  ->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=103)
+  ->  Hash  (cost=3.00..3.00 rows=100 width=4)
+        ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=4)
+ ```
+        
+Le coût de lancement n'est plus 0 comme dans les requêtes précédentes, la jointure augmente ce coût.
+
+        
+ 
+
