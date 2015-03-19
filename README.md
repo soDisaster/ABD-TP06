@@ -118,6 +118,58 @@ Total runtime: 1.827 ms
         
 ```
 
+```sql
+explain select tt.a, tt.t, tt.b from tt where tt.t in (select a from t) ;
+
+Hash Semi Join  (cost=4.25..16.01 rows=267 width=103)
+  Hash Cond: (tt.t = t.a)
+  ->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=103)
+  ->  Hash  (cost=3.00..3.00 rows=100 width=4)
+        ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=4
+```
+
+```sql
+explain analyze select tt.a, tt.t, tt.b from tt where tt.t in (select a from t) ;
+
+Hash Semi Join  (cost=4.25..16.01 rows=267 width=103) (actual time=0.385..1.463 rows=267 loops=1)
+  Hash Cond: (tt.t = t.a)
+  ->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=103) (actual time=0.023..0.402 rows=300 loops=1)
+  ->  Hash  (cost=3.00..3.00 rows=100 width=4) (actual time=0.289..0.289 rows=100 loops=1)
+        ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=4) (actual time=0.023..0.150 rows=100 loops=1)
+Total runtime: 1.806 ms
+```
+
+
+```sql 
+
+explain select tt.a, tt.t, tt.b from tt where tt.t is not null ;
+
+Seq Scan on tt  (cost=0.00..8.00 rows=267 width=103)
+  Filter: (t IS NOT NULL)
+  
+```
+
+```sql 
+
+explain analyze select tt.a, tt.t, tt.b from tt where tt.t is not null ;
+
+  
+  Seq Scan on tt  (cost=0.00..8.00 rows=267 width=103) (actual time=0.029..0.413 rows=267 loops=1)
+  Filter: (t IS NOT NULL)
+Total runtime: 0.744 ms
+
+
+```
+
+
+        
+        
+
+
+
+
+  
+
 
 
         
