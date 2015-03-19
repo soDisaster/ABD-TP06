@@ -92,6 +92,33 @@ Hash Join  (cost=4.25..16.05 rows=267 width=103)
 Le coût de lancement n'est plus 0 comme dans les requêtes précédentes, la jointure augmente ce coût.
 
 
+```sql
+
+explain select tt.a, tt.t, tt.b from t join tt on t.a = tt.t ;
+
+Hash Join  (cost=4.25..16.05 rows=267 width=103)
+  Hash Cond: (tt.t = t.a)
+  ->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=103)
+  ->  Hash  (cost=3.00..3.00 rows=100 width=4)
+        ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=4)
+       
+```
+
+```sql   
+
+explain analyze select tt.a, tt.t, tt.b from t join tt on t.a = tt.t ;
+
+Hash Join  (cost=4.25..16.05 rows=267 width=103) (actual time=0.381..1.474 rows=267 loops=1)
+  Hash Cond: (tt.t = t.a)
+  ->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=103) (actual time=0.022..0.412 rows=300 loops=1)
+  ->  Hash  (cost=3.00..3.00 rows=100 width=4) (actual time=0.292..0.292 rows=100 loops=1)
+        ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=4) (actual time=0.022..0.152 rows=100 loops=1)
+Total runtime: 1.827 ms
+        
+        
+```
+
+
 
         
  
