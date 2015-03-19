@@ -92,6 +92,8 @@ Hash Join  (cost=4.25..16.05 rows=267 width=103)
 Le coût de lancement n'est plus 0 comme dans les requêtes précédentes, la jointure augmente ce coût.
 
 
+
+
 ```sql
 
 explain select tt.a, tt.t, tt.b from t join tt on t.a = tt.t ;
@@ -103,6 +105,8 @@ Hash Join  (cost=4.25..16.05 rows=267 width=103)
         ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=4)
        
 ```
+
+
 
 ```sql   
 
@@ -118,6 +122,8 @@ Total runtime: 1.827 ms
         
 ```
 
+
+
 ```sql
 explain select tt.a, tt.t, tt.b from tt where tt.t in (select a from t) ;
 
@@ -127,6 +133,8 @@ Hash Semi Join  (cost=4.25..16.01 rows=267 width=103)
   ->  Hash  (cost=3.00..3.00 rows=100 width=4)
         ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=4
 ```
+
+
 
 ```sql
 explain analyze select tt.a, tt.t, tt.b from tt where tt.t in (select a from t) ;
@@ -140,6 +148,8 @@ Total runtime: 1.806 ms
 ```
 
 
+
+
 ```sql 
 
 explain select tt.a, tt.t, tt.b from tt where tt.t is not null ;
@@ -148,6 +158,8 @@ Seq Scan on tt  (cost=0.00..8.00 rows=267 width=103)
   Filter: (t IS NOT NULL)
   
 ```
+
+
 
 ```sql 
 
@@ -160,6 +172,8 @@ Total runtime: 0.744 ms
 
 
 ```
+
+
 
 
         
