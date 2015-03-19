@@ -90,9 +90,11 @@ Hash Join  (cost=4.25..16.05 rows=267 width=103)
  ```
         
 Le coût de lancement n'est plus 0 comme dans les requêtes précédentes, la jointure augmente ce coût.
+Chaque SeqScan correspond à une table : il y a 300 lignes dans tt et 100 lignes dans t.
 
 
-
+explain & explain analyze
+-------------------------
 
 ```sql
 
@@ -106,6 +108,8 @@ Hash Join  (cost=4.25..16.05 rows=267 width=103)
        
 ```
 
+Le coût de lancement n'est plus 0 comme dans les requêtes précédentes, la jointure augmente ce coût.
+Chaque SeqScan correspond à une table : il y a 300 lignes dans tt et 100 lignes dans t.
 
 
 ```sql   
