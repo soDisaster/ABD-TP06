@@ -463,7 +463,47 @@ Total runtime: 8.559 ms
 ```
 
 
-  
+
+ ```sql
+ 
+explain select a, count(*) from t group by a ;
+
+HashAggregate  (cost=3.50..4.75 rows=100 width=4)
+
+  ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=4)
+
+``` 
+
+
+```sql  
+explain analyze select a, count(*) from t group by a ;
+
+HashAggregate  (cost=3.50..4.75 rows=100 width=4) (actual time=0.328..0.442 rows=100 loops=1)
+
+  ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=4) (actual time=0.021..0.145 rows=100 loops=1)
+
+Total runtime: 0.743 ms
+```
+
+```sql  
+explain select b, count(*) from t group by b;
+
+HashAggregate  (cost=3.50..4.75 rows=100 width=98)
+
+  ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=98)
+
+```
+
+```sql  
+explain analyze select b, count(*) from t group by b;
+
+HashAggregate  (cost=3.50..4.75 rows=100 width=98) (actual time=0.363..0.478 rows=100 loops=1)
+
+  ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=98) (actual time=0.022..0.148 rows=100 loops=1)
+
+Total runtime: 0.756 ms
+
+```  
 
 
 
