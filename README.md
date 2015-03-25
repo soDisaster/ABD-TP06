@@ -177,6 +177,149 @@ Total runtime: 0.744 ms
 
 ```
 
+Jointures
+---------
+
+```sql 
+
+explain select T.A, T.B from T join TT on T.A = TT.T ;
+
+
+Hash Join  (cost=4.25..16.05 rows=267 width=102)
+
+  Hash Cond: (tt.t = t.a)
+
+  ->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=4)
+
+  ->  Hash  (cost=3.00..3.00 rows=100 width=102)
+
+        ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102)
+```
+
+```sql
+
+explain analyze select T.A, T.B from T join TT on T.A = TT.T ;
+        
+Hash Join  (cost=4.25..16.05 rows=267 width=102) (actual time=0.233..0.833 rows=267 loops=1)
+
+  Hash Cond: (tt.t = t.a)
+
+  ->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=4) (actual time=0.016..0.237 rows=300 loops=1)
+
+  ->  Hash  (cost=3.00..3.00 rows=100 width=102) (actual time=0.174..0.174 rows=100 loops=1)
+
+        ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102) (actual time=0.012..0.081 rows=100 loops=1)
+
+Total runtime: 1.008 ms
+
+```
+```sql
+
+explain select distinct T.A, T.B from T join TT on T.A = TT.T ;
+
+HashAggregate  (cost=17.38..18.38 rows=100 width=102)
+
+  ->  Hash Join  (cost=4.25..16.05 rows=267 width=102)
+
+        Hash Cond: (tt.t = t.a)
+
+        ->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=4)
+
+        ->  Hash  (cost=3.00..3.00 rows=100 width=102)
+
+              ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102)
+
+```
+```sql 
+ 
+explain analyze  select distinct T.A, T.B from T join TT on T.A = TT.T ;            
+              
+HashAggregate  (cost=17.38..18.38 rows=100 width=102) (actual time=2.055..2.156 rows=89 loops=1)
+
+  ->  Hash Join  (cost=4.25..16.05 rows=267 width=102) (actual time=0.372..1.521 rows=267 loops=1)
+
+        Hash Cond: (tt.t = t.a)
+
+        ->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=4) (actual time=0.028..0.416 rows=300 loops=1)
+
+        ->  Hash  (cost=3.00..3.00 rows=100 width=102) (actual time=0.309..0.309 rows=100 loops=1)
+
+              ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102) (actual time=0.019..0.145 rows=100 loops=1)
+
+Total runtime: 2.392 ms
+
+```
+```sql
+
+explain select T.A, T.B from T where T.A in (select TT.T from TT)
+
+
+Hash Semi Join  (cost=11.75..16.11 rows=89 width=102)
+
+  Hash Cond: (t.a = tt.t)
+
+  ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102)
+
+  ->  Hash  (cost=8.00..8.00 rows=300 width=4)
+
+        ->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=4)
+
+```
+```sql
+
+explain analyze select T.A, T.B from T where T.A in (select TT.T from TT)    
+        
+Hash Semi Join  (cost=11.75..16.11 rows=89 width=102) (actual time=0.990..1.354 rows=89 loops=1)
+
+  Hash Cond: (t.a = tt.t)
+
+  ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102) (actual time=0.023..0.146 rows=100 loops=1)
+
+  ->  Hash  (cost=8.00..8.00 rows=300 width=4) (actual time=0.901..0.901 rows=267 loops=1)
+
+        ->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=4) (actual time=0.026..0.458 rows=300 loops=1)
+
+Total runtime: 1.506 ms
+
+```
+
+```sql
+
+explain select T.A, T.B from T where 3 = (select count(*) from TT where TT.T = T.A)
+
+Seq Scan on t  (cost=0.00..880.25 rows=1 width=102)
+
+  Filter: (3 = (SubPlan 1))
+
+  SubPlan 1
+
+    ->  Aggregate  (cost=8.76..8.77 rows=1 width=0)
+
+          ->  Seq Scan on tt  (cost=0.00..8.75 rows=3 width=0)
+
+                Filter: (t = $0)
+   
+ ```
+ ```sql
+ 
+ explain analyze select T.A, T.B from T where 3 = (select count(*) from TT where TT.T = T.A)             
+
+ Seq Scan on t  (cost=0.00..880.25 rows=1 width=102) (actual time=0.231..9.358 rows=89 loops=1)
+
+  Filter: (3 = (SubPlan 1))
+
+  SubPlan 1
+
+    ->  Aggregate  (cost=8.76..8.77 rows=1 width=0) (actual time=0.088..0.089 rows=1 loops=100)
+
+          ->  Seq Scan on tt  (cost=0.00..8.75 rows=3 width=0) (actual time=0.044..0.080 rows=3 loops=100)
+
+                Filter: (t = $0)
+
+Total runtime: 9.638 ms
+
+```
+
 
 
 
