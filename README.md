@@ -617,13 +617,9 @@ Total runtime: 0.169 ms
 
 ```sql
 
-explain analyze select * from t where a='5 '
+explain select * from t where a='5 '
 union
 select * from t where a='6 '
-
-```
-
-```sql
 
 Unique  (cost=6.53..6.54 rows=2 width=102)
 
@@ -643,6 +639,12 @@ Unique  (cost=6.53..6.54 rows=2 width=102)
   
 ```
 ```sql
+
+
+explain select * from t where a='5 '
+union
+select * from t where a='6 '
+
 
 Unique  (cost=6.53..6.54 rows=2 width=102) (actual time=0.234..0.242 rows=2 loops=1)
 
