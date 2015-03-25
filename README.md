@@ -27,10 +27,9 @@ explain select * from T ;
 Seq Scan on t  (cost=0.00..3.00 rows=100 width=102)
 ```
 
-Coût estimé du lancement : 0  
-Coût total estimé : 3  
-Nombre de lignes estimé en sortie par ce nœud de plan : 100  
-Largeur moyenne estimée (en octets) des lignes en sortie par ce nœud de plan : 102  
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 0                        | 3                 | 100                     | 102                     |
 
 Le select * renvoie toutes les lignes présentes dans la table. Le nombre de lignes de la table t étant de 100, rows = 100.    
 Les champs a et b sont des varchars respectivement de taille 3 et 97. En tout ont a donc une taille de 100 octets, la largeur moyenne estimée étant de 102.  
@@ -45,10 +44,9 @@ explain select * from T where a = ‘4’ ;
 Seq Scan on t  (cost=0.00..3.25 rows=1 width=102)
 ```
 
-Coût estimé du lancement : 0  
-Coût total estimé : 3,25  
-Nombre de lignes estimé en sortie par ce nœud de plan : 1  
-Largeur moyenne estimée (en octets) des lignes en sortie par ce nœud de plan : 102  
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 0                        | 3.25              | 1                       | 102                     |
 
 Le select * renvoie une ligne. On cherche, en effet dans le champ "a" qui correspond à la clé primaire (elle est donc unique),  la valeur 4.  
 Les champs a et b sont des varchars respectivement de taille 3 et 97. En tout ont a donc une taille de 100 octets, la largeur moyenne estimée étant de 102.  
@@ -65,10 +63,9 @@ Seq Scan on t  (cost=0.00..3.25 rows=54 width=4)
 Filter: (a > '50'::bpchar)
 ```
 
-Coût estimé du lancement : 0  
-Coût total estimé : 3,25  
-Nombre de lignes estimé en sortie par ce nœud de plan : 54  
-Largeur moyenne estimée (en octets) des lignes en sortie par ce nœud de plan : 4  
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 0                        | 3.25              | 54                      | 4                       |
 
 Cette requête renvoie 54 lignes, de l'id 51 à 99 mais également les id 6 à 9.  
 Le champs a est un varchar de taille 3, la largeur estimée est de 4.  
@@ -84,10 +81,9 @@ explain  select T.A, T.B from T where T.A > ‘50’;
 Seq Scan on t  (cost=0.00..3.25 rows=54 width=102)
 ```
 
-Coût estimé du lancement : 0  
-Coût total estimé : 3,25  
-Nombre de lignes estimé en sortie par ce nœud de plan : 54  
-Largeur moyenne estimée (en octets) des lignes en sortie par ce nœud de plan : 102  
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 0                        | 3.25              | 54                      | 102                     |
 
 Cette requête renvoie 54 lignes, de l'id 51 à 99 mais également les id 6 à 9.  
 Le champs a est un varchar de taille 3, la largeur estimée est de 4.  
@@ -503,117 +499,89 @@ HashAggregate  (cost=17.38..18.63 rows=100 width=98) (actual time=2.105..2.207 r
 Total runtime: 2.474 ms
 ```
 
-union
------
+
+### Comparaisons de requêtes avec UNION :
+
+
+##### 1. `select * from t where a='5 ' or a='6 '`
+
 
 ```sql
 explain select * from t where a='5 ' or a='6 ' ;
 
 Seq Scan on t  (cost=0.00..3.50 rows=2 width=102)
-
-  Filter: ((a = '5 '::bpchar) OR (a = '6 '::bpchar))
-
+	Filter: ((a = '5 '::bpchar) OR (a = '6 '::bpchar))
 ```
+
 ```sql
-
-
 explain analyze select * from t where a='5 ' or a='6 ' ; 
 
 Seq Scan on t  (cost=0.00..3.50 rows=2 width=102) (actual time=0.057..0.106 rows=2 loops=1)
-
-  Filter: ((a = '5 '::bpchar) OR (a = '6 '::bpchar))
-
+	Filter: ((a = '5 '::bpchar) OR (a = '6 '::bpchar))
 Total runtime: 0.169 ms
-
 ```
 
-```sql
 
+##### 2. `select * from t where a='5 ' union select * from t where a='6 '`
+
+
+```sql
 explain select * from t where a='5 '
 union
 select * from t where a='6 '
 
 Unique  (cost=6.53..6.54 rows=2 width=102)
-
-  ->  Sort  (cost=6.53..6.53 rows=2 width=102)
-
-        Sort Key: tp6.t.a, tp6.t.b
-
-        ->  Append  (cost=0.00..6.52 rows=2 width=102)
-
-              ->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102)
-
-                    Filter: (a = '5 '::bpchar)
-
-              ->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102)
-
-                    Filter: (a = '6 '::bpchar)
-  
+	->  Sort  (cost=6.53..6.53 rows=2 width=102)
+		Sort Key: tp6.t.a, tp6.t.b
+		->  Append  (cost=0.00..6.52 rows=2 width=102)
+			->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102)
+				Filter: (a = '5 '::bpchar)
+			->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102)
+				Filter: (a = '6 '::bpchar)
 ```
+
 ```sql
-
-
-explain select * from t where a='5 '
+explain analyze select * from t where a='5 '
 union
 select * from t where a='6 '
 
-
 Unique  (cost=6.53..6.54 rows=2 width=102) (actual time=0.234..0.242 rows=2 loops=1)
-
-  ->  Sort  (cost=6.53..6.53 rows=2 width=102) (actual time=0.231..0.233 rows=2 loops=1)
-
-        Sort Key: tp6.t.a, tp6.t.b
-
-        Sort Method:  quicksort  Memory: 25kB
-
-        ->  Append  (cost=0.00..6.52 rows=2 width=102) (actual time=0.048..0.124 rows=2 loops=1)
-
-              ->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102) (actual time=0.042..0.081 rows=1 loops=1)
-
-                    Filter: (a = '5 '::bpchar)
-
-              ->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102) (actual time=0.013..0.032 rows=1 loops=1)
-
-                    Filter: (a = '6 '::bpchar)
-
+	->  Sort  (cost=6.53..6.53 rows=2 width=102) (actual time=0.231..0.233 rows=2 loops=1)
+		Sort Key: tp6.t.a, tp6.t.b
+		Sort Method:  quicksort  Memory: 25kB
+		->  Append  (cost=0.00..6.52 rows=2 width=102) (actual time=0.048..0.124 rows=2 loops=1)
+			->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102) (actual time=0.042..0.081 rows=1 loops=1)
+				Filter: (a = '5 '::bpchar)
+			->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102) (actual time=0.013..0.032 rows=1 loops=1)
+				Filter: (a = '6 '::bpchar)
 Total runtime: 0.312 ms
-     
-   
 ```
-```sql
 
+
+##### 3. `select * from t where a='5 ' union all select * from t where a='6 '`
+
+
+```sql
 explain select * from t where a='5 '
 union all
 select * from t where a='6 '
 
 Append  (cost=0.00..6.52 rows=2 width=102)
-
-  ->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102)
-
-        Filter: (a = '5 '::bpchar)
-
-  ->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102)
-
-        Filter: (a = '6 '::bpchar)
-
+	->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102)
+		Filter: (a = '5 '::bpchar)
+	->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102)
+		Filter: (a = '6 '::bpchar)
 ```
 
 ```sql
-        
 explain analyze select * from t where a='5 '
 union all
 select * from t where a='6 '
   
- Append  (cost=0.00..6.52 rows=2 width=102) (actual time=0.044..0.110 rows=2 loops=1)
-
-  ->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102) (actual time=0.038..0.069 rows=1 loops=1)
-
-        Filter: (a = '5 '::bpchar)
-
-  ->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102) (actual time=0.011..0.030 rows=1 loops=1)
-
-        Filter: (a = '6 '::bpchar)
-
+Append  (cost=0.00..6.52 rows=2 width=102) (actual time=0.044..0.110 rows=2 loops=1)
+	->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102) (actual time=0.038..0.069 rows=1 loops=1)
+		Filter: (a = '5 '::bpchar)
+	->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102) (actual time=0.011..0.030 rows=1 loops=1)
+		Filter: (a = '6 '::bpchar)
 Total runtime: 0.165 ms
- 
 ```
