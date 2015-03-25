@@ -462,7 +462,10 @@ Total runtime: 8.559 ms
 
 ```
 
+group by 
+--------
 
+Comparez les plans de ces deux requetes :
 
  ```sql
  
@@ -485,6 +488,7 @@ HashAggregate  (cost=3.50..4.75 rows=100 width=4) (actual time=0.328..0.442 rows
 Total runtime: 0.743 ms
 ```
 
+
 ```sql  
 explain select b, count(*) from t group by b;
 
@@ -503,10 +507,199 @@ HashAggregate  (cost=3.50..4.75 rows=100 width=98) (actual time=0.363..0.478 row
 
 Total runtime: 0.756 ms
 
-```  
+``` 
+
+Comparez les plans de ces deux requêtes :
+
+
+```sql  
+
+explain select t.a, count(*) from t join tt on tt.t = t.a group by t.a ;
 
 
 
-        
+HashAggregate  (cost=17.38..18.63 rows=100 width=4)
+
+  ->  Hash Join  (cost=4.25..16.05 rows=267 width=4)
+
+        Hash Cond: (tt.t = t.a)
+
+        ->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=4)
+
+        ->  Hash  (cost=3.00..3.00 rows=100 width=4)
+
+              ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=4)
+
+```
+```sql  
+
+explain analyze select t.a, count(*) from t join tt on tt.t = t.a group by t.a ;
+
+
+HashAggregate  (cost=17.38..18.63 rows=100 width=4) (actual time=1.890..1.993 rows=89 loops=1)
+
+  ->  Hash Join  (cost=4.25..16.05 rows=267 width=4) (actual time=0.358..1.484 rows=267 loops=1)
+
+        Hash Cond: (tt.t = t.a)
+
+        ->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=4) (actual time=0.018..0.409 rows=300 loops=1)
+
+        ->  Hash  (cost=3.00..3.00 rows=100 width=4) (actual time=0.297..0.297 rows=100 loops=1)
+
+              ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=4) (actual time=0.020..0.148 rows=100 loops=1)
+
+Total runtime: 2.272 ms
+
+```
+
+
+
+```sql 
+
+explain select t.b, count(*) from t join tt on tt.t = t.a group by t.b ;
+
+HashAggregate  (cost=17.38..18.63 rows=100 width=98)
+
+  ->  Hash Join  (cost=4.25..16.05 rows=267 width=98)
+
+        Hash Cond: (tt.t = t.a)
+
+        ->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=4)
+
+        ->  Hash  (cost=3.00..3.00 rows=100 width=102)
+
+              ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102
+ ```
+ ```sql 
  
+explain analyze select t.b, count(*) from t join tt on tt.t = t.a group by t.b ;
+              
+HashAggregate  (cost=17.38..18.63 rows=100 width=98) (actual time=2.105..2.207 rows=89 loops=1)
 
+  ->  Hash Join  (cost=4.25..16.05 rows=267 width=98) (actual time=0.399..1.526 rows=267 loops=1)
+
+        Hash Cond: (tt.t = t.a)
+
+        ->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=4) (actual time=0.026..0.422 rows=300 loops=1)
+
+        ->  Hash  (cost=3.00..3.00 rows=100 width=102) (actual time=0.334..0.334 rows=100 loops=1)
+
+              ->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102) (actual time=0.018..0.143 rows=100 loops=1)
+
+Total runtime: 2.474 ms
+
+```
+        
+        
+union
+-----
+
+```sql
+explain select * from t where a='5 ' or a='6 ' ;
+
+Seq Scan on t  (cost=0.00..3.50 rows=2 width=102)
+
+  Filter: ((a = '5 '::bpchar) OR (a = '6 '::bpchar))
+
+```
+```sql
+
+
+explain analyze select * from t where a='5 ' or a='6 ' ; 
+
+Seq Scan on t  (cost=0.00..3.50 rows=2 width=102) (actual time=0.057..0.106 rows=2 loops=1)
+
+  Filter: ((a = '5 '::bpchar) OR (a = '6 '::bpchar))
+
+Total runtime: 0.169 ms
+
+```
+
+```sql
+
+explain analyze select * from t where a='5 '
+union
+select * from t where a='6 '
+
+```
+
+```sql
+
+Unique  (cost=6.53..6.54 rows=2 width=102)
+
+  ->  Sort  (cost=6.53..6.53 rows=2 width=102)
+
+        Sort Key: tp6.t.a, tp6.t.b
+
+        ->  Append  (cost=0.00..6.52 rows=2 width=102)
+
+              ->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102)
+
+                    Filter: (a = '5 '::bpchar)
+
+              ->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102)
+
+                    Filter: (a = '6 '::bpchar)
+  
+```
+```sql
+
+Unique  (cost=6.53..6.54 rows=2 width=102) (actual time=0.234..0.242 rows=2 loops=1)
+
+  ->  Sort  (cost=6.53..6.53 rows=2 width=102) (actual time=0.231..0.233 rows=2 loops=1)
+
+        Sort Key: tp6.t.a, tp6.t.b
+
+        Sort Method:  quicksort  Memory: 25kB
+
+        ->  Append  (cost=0.00..6.52 rows=2 width=102) (actual time=0.048..0.124 rows=2 loops=1)
+
+              ->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102) (actual time=0.042..0.081 rows=1 loops=1)
+
+                    Filter: (a = '5 '::bpchar)
+
+              ->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102) (actual time=0.013..0.032 rows=1 loops=1)
+
+                    Filter: (a = '6 '::bpchar)
+
+Total runtime: 0.312 ms
+     
+   
+```
+```sql
+
+explain select * from t where a='5 '
+union all
+select * from t where a='6 '
+
+Append  (cost=0.00..6.52 rows=2 width=102)
+
+  ->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102)
+
+        Filter: (a = '5 '::bpchar)
+
+  ->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102)
+
+        Filter: (a = '6 '::bpchar)
+
+```
+
+```sql
+        
+explain analyze select * from t where a='5 '
+union all
+select * from t where a='6 '
+  
+ Append  (cost=0.00..6.52 rows=2 width=102) (actual time=0.044..0.110 rows=2 loops=1)
+
+  ->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102) (actual time=0.038..0.069 rows=1 loops=1)
+
+        Filter: (a = '5 '::bpchar)
+
+  ->  Seq Scan on t  (cost=0.00..3.25 rows=1 width=102) (actual time=0.011..0.030 rows=1 loops=1)
+
+        Filter: (a = '6 '::bpchar)
+
+Total runtime: 0.165 ms
+ 
+```
