@@ -115,11 +115,12 @@ Le coût de lancement n'est plus 0 comme dans les requêtes précédentes, la jo
 Chaque SeqScan correspond à une table : il y a 300 lignes dans tt et 100 lignes dans t.
 
 On visualise deux sous-requêtes executées sur chaque table :
-Seq Scan on tt  (cost=0.00..8.00 rows=300 width=103)
-Seq Scan on t  (cost=0.00..3.00 rows=100 width=4)
-Il n'y a pas de jointures pour ces sous-requêtes donc le coût estimé du lancement de 0.
+`Seq Scan on tt  (cost=0.00..8.00 rows=300 width=103)` Récupération des enregistrements de la table tt.
+`Seq Scan on t  (cost=0.00..3.00 rows=100 width=4)` Récupération des enregistrements de la table t.
 
-Récupération des enregistrements 
+Il n'y a pas de jointure, on exécute une requête sur une table dans ces lignes, le coût de lancement est donc estimé est de 0. La jointure n'a lieu qu'à ce moment : 
+
+`Hash Join  (cost=4.25..16.05 rows=267 width=103)`
 
 
 #### Comparaison avec les plans d’exécutions des requêtes suivantes :
@@ -138,9 +139,12 @@ Hash Join  (cost=4.25..16.05 rows=267 width=103)
 			->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=4)
 ```
 
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 4.25                     | __16.05__         | 267                     | 103                     |
 
-Le coût de lancement n'est plus 0 comme dans les requêtes précédentes, la jointure augmente ce coût.  
-Chaque SeqScan correspond à une table : il y a 300 lignes dans tt et 100 lignes dans t.
+
+Même chose que la précédente.
 
 ```sql   
 explain analyze select tt.a, tt.t, tt.b from t join tt on t.a = tt.t ;
@@ -152,6 +156,18 @@ Hash Join  (cost=4.25..16.05 rows=267 width=103) (actual time=0.381..1.474 rows=
 			->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=4) (actual time=0.022..0.152 rows=100 loops=1)
 Total runtime: 1.827 ms
 ```
+
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 4.25                     | __16.05__         | 267                     | 103                     |
+
+
+Le mot clé analyze retourne "actual time" qui correspond au temps réel d'exécution pour chaque noeud du plan.
+rows représente le nombre de lignes pour ce noeud. 
+loops correspond au nombre total d'exécution du noeud. Dans cette requête, chaque noeud n'a été executé qu'une seule fois. 
+Chaque noeud récupère les valeurs des noeud précédents, on obtient donc le temps d'exécution total de la requête en analysant la première ligne. Cette première ligne est différente du temps total précisé à la dernière ligne. Le "total runtime" de la dernière ligne inclut le temps de lancement et d'arrêt de l'exécuteur. 
+
+
 
 
 ##### 2. `select tt.a, tt.t, tt.b from tt where tt.t in (select a from t)`
@@ -166,6 +182,11 @@ Hash Semi Join  (cost=4.25..16.01 rows=267 width=103)
 		->  Hash  (cost=3.00..3.00 rows=100 width=4)
 			->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=4
 ```
+
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 4.25                     | __16.01__         | 267                     | 103                     |
+
 
 ```sql
 explain analyze select tt.a, tt.t, tt.b from tt where tt.t in (select a from t) ;
