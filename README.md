@@ -123,6 +123,7 @@ Il n'y a pas de jointure, on exécute une requête sur une table dans ces lignes
 `Hash Join  (cost=4.25..16.05 rows=267 width=103)`
 
 
+
 #### Comparaison avec les plans d’exécutions des requêtes suivantes :
 
 
@@ -144,7 +145,9 @@ Hash Join  (cost=4.25..16.05 rows=267 width=103)
 | 4.25                     | __16.05__         | 267                     | 103                     |
 
 
-Même chose que la précédente.
+Jointure sur un élément différent mais apparement identique.
+Les coûts estimés sont les mêmes qu'à la requête précédente.
+
 
 ```sql   
 explain analyze select tt.a, tt.t, tt.b from t join tt on t.a = tt.t ;
@@ -187,6 +190,14 @@ Hash Semi Join  (cost=4.25..16.01 rows=267 width=103)
 |:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
 | 4.25                     | __16.01__         | 267                     | 103                     |
 
+Les coûts sont similaires à la requête précédente malgré la sous-requête.
+
+
+On visualise deux sous-requêtes executées sur chaque table :
+`Seq Scan on tt  (cost=0.00..8.00 rows=300 width=103)` Récupération des enregistrements de la table tt.
+`Seq Scan on t  (cost=0.00..3.00 rows=100 width=4)` Récupération des enregistrements de la table t.
+
+Il n'y a pas de jointure, on exécute une requête sur une table dans ces lignes, le coût de lancement est donc estimé est de 0. La jointure n'a lieu qu'à ce moment : 
 
 ```sql
 explain analyze select tt.a, tt.t, tt.b from tt where tt.t in (select a from t) ;
@@ -210,6 +221,9 @@ Seq Scan on tt  (cost=0.00..8.00 rows=267 width=103)
 	Filter: (t IS NOT NULL)
 ```
 
+Le plan d'exécution de cette requête est différent des précédentes. Un filtre est appliqué. 
+Le coût est différent pour le même résultat.
+
 ```sql 
 explain analyze select tt.a, tt.t, tt.b from tt where tt.t is not null ;
 
@@ -217,6 +231,10 @@ Seq Scan on tt  (cost=0.00..8.00 rows=267 width=103) (actual time=0.029..0.413 r
 	Filter: (t IS NOT NULL)
 Total runtime: 0.744 ms
 ```
+
+On gagne effectivement plus d'1 ms. Cette requête est donc plus efficace que les autres.
+
+
 
 ### Calcul d'une jointure entre les colonnes T.A et T.B :
 
@@ -234,6 +252,11 @@ Hash Join  (cost=4.25..16.05 rows=267 width=102)
 			->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102)
 ```
 
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 4.25                     | __16.05__         | 267                     | 103                     |
+
+
 ```sql
 explain analyze select T.A, T.B from T join TT on T.A = TT.T ;
         
@@ -244,6 +267,8 @@ Hash Join  (cost=4.25..16.05 rows=267 width=102) (actual time=0.233..0.833 rows=
 			->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102) (actual time=0.012..0.081 rows=100 loops=1)
 Total runtime: 1.008 ms
 ```
+
+
 
 
 ##### 2. `select distinct T.A, T.B from T join TT on T.A = TT.T`
@@ -259,6 +284,12 @@ HashAggregate  (cost=17.38..18.38 rows=100 width=102)
 		->  Hash  (cost=3.00..3.00 rows=100 width=102)
 			->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102)
 ```
+
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 17.38                    | __18.38__         | 100                     | 102                     |
+
+Nous pouvons en déduire que le distinct impacte fortement le coût estimé du lancement.
 
 ```sql 
 explain analyze  select distinct T.A, T.B from T join TT on T.A = TT.T ;            
@@ -286,6 +317,12 @@ Hash Semi Join  (cost=11.75..16.11 rows=89 width=102)
 		->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=4)
 ```
 
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 11.75                    | __16.11__         | 89                      | 102                     |
+
+La sous-requête impacte le coût estimé de lancement, il est cependant inférieur au coût que peut représenter le distinct.
+
 ```sql
 explain analyze select T.A, T.B from T where T.A in (select TT.T from TT)    
         
@@ -311,6 +348,14 @@ Seq Scan on t  (cost=0.00..880.25 rows=1 width=102)
 			->  Seq Scan on tt  (cost=0.00..8.75 rows=3 width=0)
 				Filter: (t = $0)
 ```
+
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 0                        | __880.25__        | 1                       | 102                     |
+
+Le coût total estimé est de 880.25 ! 
+Le count(*) en est responsable.
+
 
 ```sql
 explain analyze select T.A, T.B from T where 3 = (select count(*) from TT where TT.T = T.A)             
@@ -341,6 +386,13 @@ Hash Join  (cost=4.25..16.05 rows=267 width=102)
 		->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102)
 ```
 
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 4.25                     | __16.05__         | 267                     | 103                     |
+
+
+L'index ne change rien.
+
 ```sql
 explain analyze select T.A, T.B from T join TT on T.A = TT.T ;
         
@@ -366,6 +418,13 @@ HashAggregate  (cost=17.38..18.38 rows=100 width=102)
 		->  Hash  (cost=3.00..3.00 rows=100 width=102)
 			->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102)
 ```
+
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 17.38                    | __18.38__         | 100                     | 102                     |
+
+
+L'index ne change rien.
 
 ```sql  
 explain analyze  select distinct T.A, T.B from T join TT on T.A = TT.T ;       
@@ -393,6 +452,11 @@ Hash Semi Join  (cost=11.75..16.11 rows=89 width=102)
 		->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=4)
 ```
 
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 11.75                    | __16.11__         | 89                      | 102                     |
+
+
 ```sql
 explain analyze select T.A, T.B from T where T.A in (select TT.T from TT)    
         
@@ -418,6 +482,10 @@ Seq Scan on t  (cost=0.00..880.25 rows=1 width=102)
 			->  Seq Scan on tt  (cost=0.00..8.75 rows=3 width=0)
 				Filter: (t = $0)
 ```
+
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 0                        | __880.25__        | 1                       | 102                     |
 
 ```sql 
 explain analyze select T.A, T.B from T where 3 = (select count(*) from TT where TT.T = T.A)             
