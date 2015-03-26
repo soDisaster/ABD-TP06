@@ -32,7 +32,7 @@ Seq Scan on t  (cost=0.00..3.00 rows=100 width=102)
 | 0                        | __3__             | 100                     | 102                     |
 
 Le `SELECT *` retourne toutes les lignes présentes dans la table. Le nombre de lignes de la table t étant de 100, rows = 100.    
-Les champs a et b sont des VARCHARS respectivement de taille 3 et 97. En tout ont a donc une taille de 100 octets, la largeur moyenne estimée étant de 102 octets.  
+Les champs a et b sont des VARCHARS respectivement de taille 3 et 97. En tout on a donc une taille de 100 octets, la largeur moyenne estimée étant de 102 octets.  
 
 
 #### 2. `select * from T where a = ‘4’`
@@ -107,8 +107,19 @@ Hash Join  (cost=4.25..16.05 rows=267 width=103)
 			->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=4)
 ```
 
-Le coût de lancement n'est plus 0 comme dans les requêtes précédentes, la jointure augmente ce coût.  
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 4.25                     | __16.05__         | 267                     | 103                     |
+
+Le coût de lancement n'est plus 0 comme dans les requêtes précédentes, la jointure augmente ce coût.
 Chaque SeqScan correspond à une table : il y a 300 lignes dans tt et 100 lignes dans t.
+
+On visualise deux sous-requêtes executées sur chaque table :
+Seq Scan on tt  (cost=0.00..8.00 rows=300 width=103)
+Seq Scan on t  (cost=0.00..3.00 rows=100 width=4)
+Il n'y a pas de jointures pour ces sous-requêtes donc le coût estimé du lancement de 0.
+
+Récupération des enregistrements 
 
 
 #### Comparaison avec les plans d’exécutions des requêtes suivantes :
@@ -126,6 +137,7 @@ Hash Join  (cost=4.25..16.05 rows=267 width=103)
 		->  Hash  (cost=3.00..3.00 rows=100 width=4)
 			->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=4)
 ```
+
 
 Le coût de lancement n'est plus 0 comme dans les requêtes précédentes, la jointure augmente ce coût.  
 Chaque SeqScan correspond à une table : il y a 300 lignes dans tt et 100 lignes dans t.
