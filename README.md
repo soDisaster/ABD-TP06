@@ -516,6 +516,7 @@ HashAggregate  (cost=3.50..4.75 rows=100 width=4)
 	->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=4)
 ``` 
 
+
 ```sql  
 explain analyze select a, count(*) from t group by a ;
 
@@ -523,6 +524,11 @@ HashAggregate  (cost=3.50..4.75 rows=100 width=4) (actual time=0.328..0.442 rows
 	->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=4) (actual time=0.021..0.145 rows=100 loops=1)
 Total runtime: 0.743 ms
 ```
+
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 3.5                      | __4.75__          | 100                     | 4                       |
+
 
 
 ###### 2. `select b, count(*) from t group by b`
@@ -542,6 +548,11 @@ HashAggregate  (cost=3.50..4.75 rows=100 width=98) (actual time=0.363..0.478 row
 	->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=98) (actual time=0.022..0.148 rows=100 loops=1)
 Total runtime: 0.756 ms
 ``` 
+
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 3.5                      | __4.75__          | 100                     | 4                       |
+
 
 
 #### Comparaisons des deux dernières requêtes :
@@ -573,6 +584,11 @@ HashAggregate  (cost=17.38..18.63 rows=100 width=4) (actual time=1.890..1.993 ro
 Total runtime: 2.272 ms
 ```
 
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 17.38                    | __18.63__         | 100                     | 4                       |
+
+
 
 ###### 2. `select t.b, count(*) from t join tt on tt.t = t.a group by t.b`
 
@@ -599,6 +615,9 @@ HashAggregate  (cost=17.38..18.63 rows=100 width=98) (actual time=2.105..2.207 r
 			->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102) (actual time=0.018..0.143 rows=100 loops=1)
 Total runtime: 2.474 ms
 ```
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 17.38                    | __18.63__         | 100                     | 4                       |
 
 
 ### Comparaisons de requêtes avec UNION :
@@ -621,6 +640,11 @@ Seq Scan on t  (cost=0.00..3.50 rows=2 width=102) (actual time=0.057..0.106 rows
 	Filter: ((a = '5 '::bpchar) OR (a = '6 '::bpchar))
 Total runtime: 0.169 ms
 ```
+
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 0                        | __3.50__          | 2                       | 102                     |
+
 
 
 ##### 2. `select * from t where a='5 ' union select * from t where a='6 '`
@@ -658,6 +682,11 @@ Unique  (cost=6.53..6.54 rows=2 width=102) (actual time=0.234..0.242 rows=2 loop
 Total runtime: 0.312 ms
 ```
 
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 6.53                     | __6.54__          |  2                      | 102                     |
+
+
 
 ##### 3. `select * from t where a='5 ' union all select * from t where a='6 '`
 
@@ -686,3 +715,7 @@ Append  (cost=0.00..6.52 rows=2 width=102) (actual time=0.044..0.110 rows=2 loop
 		Filter: (a = '6 '::bpchar)
 Total runtime: 0.165 ms
 ```
+
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 0                        | __6.52__          |  2                      | 102                     |
