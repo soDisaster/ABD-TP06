@@ -29,10 +29,10 @@ Seq Scan on t  (cost=0.00..3.00 rows=100 width=102)
 
 | Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
 |:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
-| 0                        | 3                 | 100                     | 102                     |
+| 0                        | __3__             | 100                     | 102                     |
 
-Le select * renvoie toutes les lignes présentes dans la table. Le nombre de lignes de la table t étant de 100, rows = 100.    
-Les champs a et b sont des varchars respectivement de taille 3 et 97. En tout ont a donc une taille de 100 octets, la largeur moyenne estimée étant de 102.  
+Le `SELECT *` retourne toutes les lignes présentes dans la table. Le nombre de lignes de la table t étant de 100, rows = 100.    
+Les champs a et b sont des VARCHARS respectivement de taille 3 et 97. En tout ont a donc une taille de 100 octets, la largeur moyenne estimée étant de 102 octets.  
 
 
 #### 2. `select * from T where a = ‘4’`
@@ -46,11 +46,11 @@ Seq Scan on t  (cost=0.00..3.25 rows=1 width=102)
 
 | Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
 |:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
-| 0                        | 3.25              | 1                       | 102                     |
+| 0                        | __3.25__          | 1                       | 102                     |
 
-Le select * renvoie une ligne. On cherche, en effet dans le champ "a" qui correspond à la clé primaire (elle est donc unique),  la valeur 4.  
-Les champs a et b sont des varchars respectivement de taille 3 et 97. En tout ont a donc une taille de 100 octets, la largeur moyenne estimée étant de 102.  
-Le coût est plus élevé que pour la requête précédente à cause de la condition where.  
+Le `SELECT *` retourne une seule ligne. On cherche en effet dans le champ a, qui correspond à la clé primaire (elle est donc unique), la valeur 4.  
+Les champs a et b sont des VARCHARS respectivement de taille 3 et 97. En tout, on a donc une taille de 100 octets, la largeur moyenne estimée étant de 102 octets.  
+Le coût est plus élevé que pour la requête précédente à cause de la condition `WHERE`.  
 
 
 #### 3. `select T.A from T where T.A > ‘50’`
@@ -65,11 +65,11 @@ Filter: (a > '50'::bpchar)
 
 | Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
 |:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
-| 0                        | 3.25              | 54                      | 4                       |
+| 0                        | __3.25__          | 54                      | 4                       |
 
-Cette requête renvoie 54 lignes, de l'id 51 à 99 mais également les id 6 à 9.  
-Le champs a est un varchar de taille 3, la largeur estimée est de 4.  
-Même chose que la requête précédente : le coût est plus élevé que pour la première requête à cause de la condition where.
+Cette requête retourne 54 lignes, de l'ID 51 à 99 mais également les ID 6 à 9.  
+Le champs a est un VARCHAR de taille 3, la largeur estimée est de 4 octets.  
+Même chose que la requête précédente : le coût est plus élevé que pour la première requête à cause de la condition `WHERE`.
 
 
 #### 4. `select T.A, T.B from T where T.A > ‘50’`
@@ -83,11 +83,11 @@ Seq Scan on t  (cost=0.00..3.25 rows=54 width=102)
 
 | Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
 |:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
-| 0                        | 3.25              | 54                      | 102                     |
+| 0                        | __3.25__          | 54                      | 102                     |
 
-Cette requête renvoie 54 lignes, de l'id 51 à 99 mais également les id 6 à 9.  
-Le champs a est un varchar de taille 3, la largeur estimée est de 4.  
-Même chose que précédemment : varchar(3) + varchar(97)
+Cette requête retourne 54 lignes, de l'ID 51 à 99 mais également les ID 6 à 9.  
+Le champs a est un VARCHAR de taille 3, la largeur estimée est de 4.  
+Même chose que précédemment : VARCHAR(3) + VARCHAR(97)
 
 
 ### Jointure :
