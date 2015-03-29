@@ -546,7 +546,7 @@ Total runtime: 0.756 ms
 |:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
 | 3.5                      | __4.75__          | 100                     | 4                       |
 
-Le temps d'éxécution total, le coût estimé du lancement et le coût total estimé des deux requêtes sotn similaires. 
+Le temps d'exécution total, le coût estimé du lancement et le coût total estimé des deux requêtes sotn similaires. 
 
 
 #### Comparaisons des deux dernières requêtes :
@@ -613,7 +613,7 @@ Total runtime: 2.474 ms
 |:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
 | 17.38                    | __18.63__         | 100                     | 4                       |
 
-Le temps d'éxécution total, le coût estimé du lancement et le coût total estimé des deux requêtes sotn similaires. 
+Le temps d'exécution total, le coût estimé du lancement et le coût total estimé des deux requêtes sotn similaires. 
 
 
 ### Comparaisons de requêtes avec UNION :
@@ -714,4 +714,4 @@ Total runtime: 0.165 ms
 |:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
 | 0                        | __6.52__          |  2                      | 102                     |
 
-Ces trois requêtes ont un temps d'exécution total très faibles. Le mot clé union fait perdre 0,200 ms au temps d'exécution. Les mots clés union all permette un temps d'exécution égal voir inférieur à une requête similaire sans les mots clés "union" ou "union all"
+Ces trois requêtes ont un temps d'exécution total très faibles. Le mot clé union fait perdre 0,200 ms au temps d'exécution. Les mots clés union all permettent un temps d'exécution égal voir inférieur à une requête similaire sans les mots clés "union" ou "union all"
