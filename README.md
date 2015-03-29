@@ -426,7 +426,7 @@ Total runtime: 2.417 ms
 |:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
 | 17.38                    | __18.38__         | 100                     | 102                     |
 
-L'index augmente le le temps d'exécution total d'environ 0,100 ms.
+L'index augmente le temps d'exécution total d'environ 0,100 ms.
 
 
 ##### 3. `select T.A, T.B from T where T.A in (select TT.T from TT)`
