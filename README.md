@@ -140,10 +140,6 @@ Hash Join  (cost=4.25..16.05 rows=267 width=103)
 			->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=4)
 ```
 
-| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
-|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
-| 4.25                     | __16.05__         | 267                     | 103                     |
-
 
 Jointure sur un élément différent mais apparement identique.
 Les coûts estimés sont les mêmes qu'à la requête précédente.
@@ -186,10 +182,6 @@ Hash Semi Join  (cost=4.25..16.01 rows=267 width=103)
 			->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=4
 ```
 
-| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
-|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
-| 4.25                     | __16.01__         | 267                     | 103                     |
-
 Les coûts sont similaires à la requête précédente malgré la sous-requête.
 
 
@@ -210,6 +202,10 @@ Hash Semi Join  (cost=4.25..16.01 rows=267 width=103) (actual time=0.385..1.463 
 Total runtime: 1.806 ms
 ```
 
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 4.25                     | __16.01__         | 267                     | 103                     |
+
 
 ##### 3. `select tt.a, tt.t, tt.b from tt where tt.t is not null`
 
@@ -222,7 +218,7 @@ Seq Scan on tt  (cost=0.00..8.00 rows=267 width=103)
 ```
 
 Le plan d'exécution de cette requête est différent des précédentes. Un filtre est appliqué. 
-Le coût est différent pour le même résultat.
+Le coût est différent pour le même résultat. Ce coût semble avantageux.
 
 ```sql 
 explain analyze select tt.a, tt.t, tt.b from tt where tt.t is not null ;
@@ -233,7 +229,6 @@ Total runtime: 0.744 ms
 ```
 
 On gagne effectivement plus d'1 ms. Cette requête est donc plus efficace que les autres.
-
 
 
 ### Calcul d'une jointure entre les colonnes T.A et T.B :
@@ -252,11 +247,6 @@ Hash Join  (cost=4.25..16.05 rows=267 width=102)
 			->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102)
 ```
 
-| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
-|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
-| 4.25                     | __16.05__         | 267                     | 103                     |
-
-
 ```sql
 explain analyze select T.A, T.B from T join TT on T.A = TT.T ;
         
@@ -268,6 +258,9 @@ Hash Join  (cost=4.25..16.05 rows=267 width=102) (actual time=0.233..0.833 rows=
 Total runtime: 1.008 ms
 ```
 
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 4.25                     | __16.05__         | 267                     | 103                     |
 
 
 
@@ -285,11 +278,8 @@ HashAggregate  (cost=17.38..18.38 rows=100 width=102)
 			->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102)
 ```
 
-| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
-|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
-| 17.38                    | __18.38__         | 100                     | 102                     |
-
 Nous pouvons en déduire que le distinct impacte fortement le coût estimé du lancement.
+
 
 ```sql 
 explain analyze  select distinct T.A, T.B from T join TT on T.A = TT.T ;            
@@ -302,6 +292,10 @@ HashAggregate  (cost=17.38..18.38 rows=100 width=102) (actual time=2.055..2.156 
 			->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102) (actual time=0.019..0.145 rows=100 loops=1)
 Total runtime: 2.392 ms
 ```
+
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 17.38                    | __18.38__         | 100                     | 102                     |
 
 
 ##### 3. `select T.A, T.B from T where T.A in (select TT.T from TT)`
@@ -317,10 +311,6 @@ Hash Semi Join  (cost=11.75..16.11 rows=89 width=102)
 		->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=4)
 ```
 
-| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
-|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
-| 11.75                    | __16.11__         | 89                      | 102                     |
-
 La sous-requête impacte le coût estimé de lancement, il est cependant inférieur au coût que peut représenter le distinct.
 
 ```sql
@@ -333,6 +323,10 @@ Hash Semi Join  (cost=11.75..16.11 rows=89 width=102) (actual time=0.990..1.354 
 		->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=4) (actual time=0.026..0.458 rows=300 loops=1)
 Total runtime: 1.506 ms
 ```
+
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 11.75                    | __16.11__         | 89                      | 102                     |
 
 
 ##### 4. `select T.A, T.B from T where 3 = (select count(*) from TT where TT.T = T.A)`
@@ -349,10 +343,6 @@ Seq Scan on t  (cost=0.00..880.25 rows=1 width=102)
 				Filter: (t = $0)
 ```
 
-| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
-|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
-| 0                        | __880.25__        | 1                       | 102                     |
-
 Le coût total estimé est de 880.25 ! 
 Le count(*) en est responsable.
 
@@ -368,6 +358,10 @@ Seq Scan on t  (cost=0.00..880.25 rows=1 width=102) (actual time=0.231..9.358 ro
 				Filter: (t = $0)
 Total runtime: 9.638 ms
 ```
+
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 0                        | __880.25__        | 1                       | 102                     |
 
 
 ### Calcul d'une jointure entre les colonnes T.A et T.B avec index sur TT(T) :
@@ -386,12 +380,7 @@ Hash Join  (cost=4.25..16.05 rows=267 width=102)
 		->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102)
 ```
 
-| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
-|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
-| 4.25                     | __16.05__         | 267                     | 103                     |
-
-
-L'index ne change rien.
+L'index ne change rien au coût.
 
 ```sql
 explain analyze select T.A, T.B from T join TT on T.A = TT.T ;
@@ -404,6 +393,12 @@ Hash Join  (cost=4.25..16.05 rows=267 width=102) (actual time=0.428..1.521 rows=
 Total runtime: 1.854 ms
 ```
 
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 4.25                     | __16.05__         | 267                     | 103                     |
+
+
+Le temps d'exécution total est beaucoup plus long. 1.008 ms sans l'index, 1.854 ms avec l'index.
 
 ##### 2. `select distinct T.A, T.B from T join TT on T.A = TT.T`
 
@@ -419,12 +414,8 @@ HashAggregate  (cost=17.38..18.38 rows=100 width=102)
 			->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102)
 ```
 
-| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
-|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
-| 17.38                    | __18.38__         | 100                     | 102                     |
+L'index ne change rien au coût.
 
-
-L'index ne change rien.
 
 ```sql  
 explain analyze  select distinct T.A, T.B from T join TT on T.A = TT.T ;       
@@ -437,6 +428,15 @@ HashAggregate  (cost=17.38..18.38 rows=100 width=102) (actual time=2.086..2.188 
 			->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102) (actual time=0.019..0.159 rows=100 loops=1)
 Total runtime: 2.417 ms
 ```
+
+
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 17.38                    | __18.38__         | 100                     | 102                     |
+
+
+L'index augmente le le temps d'exécution total d'environ 0,100 ms.
+
 
 
 ##### 3. `select T.A, T.B from T where T.A in (select TT.T from TT)`
@@ -452,10 +452,6 @@ Hash Semi Join  (cost=11.75..16.11 rows=89 width=102)
 		->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=4)
 ```
 
-| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
-|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
-| 11.75                    | __16.11__         | 89                      | 102                     |
-
 
 ```sql
 explain analyze select T.A, T.B from T where T.A in (select TT.T from TT)    
@@ -467,6 +463,13 @@ Hash Semi Join  (cost=11.75..16.11 rows=89 width=102) (actual time=0.934..1.296 
 		->  Seq Scan on tt  (cost=0.00..8.00 rows=300 width=4) (actual time=0.022..0.432 rows=300 loops=1)
 Total runtime: 1.447 ms
 ```
+
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 11.75                    | __16.11__         | 89                      | 102                     |
+
+
+On gagne 0,100 sur le temps d'exécution total.
 
 
 ##### 4. `select T.A, T.B from T where 3 = (select count(*) from TT where TT.T = T.A)`
@@ -483,9 +486,6 @@ Seq Scan on t  (cost=0.00..880.25 rows=1 width=102)
 				Filter: (t = $0)
 ```
 
-| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
-|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
-| 0                        | __880.25__        | 1                       | 102                     |
 
 ```sql 
 explain analyze select T.A, T.B from T where 3 = (select count(*) from TT where TT.T = T.A)             
@@ -498,6 +498,16 @@ Seq Scan on t  (cost=0.00..880.25 rows=1 width=102) (actual time=0.242..8.346 ro
 				Filter: (t = $0)
 Total runtime: 8.559 ms
 ```
+
+| Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
+|:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
+| 0                        | __880.25__        | 1                       | 102                     |
+
+
+On gagne 1 ms grâce à l'index.
+
+
+En conclusion l'index apporte un gain de temps dans des requêtes contenant des sous-requêtes mais fait perdre du temps lors d'une simple jointure entre deux tables.
 
 
 ### Comparaisons de requêtes avec GROUP BY :
@@ -554,6 +564,7 @@ Total runtime: 0.756 ms
 | 3.5                      | __4.75__          | 100                     | 4                       |
 
 
+Le temps d'éxécution total, le coût estimé du lancement et le coût total estimé des deux requêtes sotn similaires. 
 
 #### Comparaisons des deux dernières requêtes :
 
@@ -615,9 +626,13 @@ HashAggregate  (cost=17.38..18.63 rows=100 width=98) (actual time=2.105..2.207 r
 			->  Seq Scan on t  (cost=0.00..3.00 rows=100 width=102) (actual time=0.018..0.143 rows=100 loops=1)
 Total runtime: 2.474 ms
 ```
+
 | Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
 |:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
 | 17.38                    | __18.63__         | 100                     | 4                       |
+
+
+Le temps d'éxécution total, le coût estimé du lancement et le coût total estimé des deux requêtes sotn similaires. 
 
 
 ### Comparaisons de requêtes avec UNION :
@@ -719,3 +734,7 @@ Total runtime: 0.165 ms
 | Coût estimé du lancement | Coût total estimé | Nombre de lignes estimé | Largeur moyenne estimée |
 |:------------------------:|:-----------------:|:-----------------------:|:-----------------------:|
 | 0                        | __6.52__          |  2                      | 102                     |
+
+
+
+Ces trois requêtes ont un temps d'exécution total très faibles. Le mot clé union fait perdre 0,200 ms au temps d'exécution. Les mots clés union all permette un temps d'exécution égal voir inférieur à une requête similaire sans les mots clés "union" ou "union all"
